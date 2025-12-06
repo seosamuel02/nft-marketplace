@@ -100,7 +100,7 @@ export default function Home() {
       // Wait, I fetch directly from mapping is better if I have IDs? 
       // But I don't know IDs. So Event -> Check Mapping.
       const listing = await market.listings(nftAddress, tokenId);
-      if (listing.price > 0n) {
+      if (listing.price > BigInt(0)) {
         const uri = await nft.tokenURI(tokenId);
         activeListings.push({
           seller: listing.seller,
