@@ -80,10 +80,10 @@ export default function Home() {
       }
     }
 
-    const loadedNFTs = await Promise.all(Array.from(myOwned).map(async (id) => {
+    const loadedNFTs = (await Promise.all(Array.from(myOwned).map(async (id) => {
       const uri = await nft.tokenURI(id);
       return { id, uri };
-    }));
+    }))).filter(nft => !nft.uri.includes("placehold.co")); // Filter out placeholders
     setMyNFTs(loadedNFTs);
 
     // Market Items
@@ -94,21 +94,19 @@ export default function Home() {
 
     for (const e of marketEvents) {
       const { seller, nftAddress, tokenId, price } = (e as any).args;
-      // Check if listing is still valid in contract mapping
-      // struct Listing { seller, price }
-      // If price == 0, it's deleted (in my contract logic I delete it).
-      // Wait, I fetch directly from mapping is better if I have IDs? 
-      // But I don't know IDs. So Event -> Check Mapping.
       const listing = await market.listings(nftAddress, tokenId);
       if (listing.price > BigInt(0)) {
         const uri = await nft.tokenURI(tokenId);
-        activeListings.push({
-          seller: listing.seller,
-          price: ethers.formatEther(listing.price),
-          tokenId: tokenId.toString(),
-          nftAddress,
-          uri
-        });
+        // Filter out placeholders
+        if (!uri.includes("placehold.co")) {
+          activeListings.push({
+            seller: listing.seller,
+            price: ethers.formatEther(listing.price),
+            tokenId: tokenId.toString(),
+            nftAddress,
+            uri
+          });
+        }
       }
     }
     setMarketItems(activeListings);
